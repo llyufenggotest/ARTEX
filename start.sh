@@ -20,6 +20,27 @@ set -u
 
 cd "$(dirname "$0")" || exit 1
 
+# ── YF 破盾层：常驻 Xvfb ───────────────────────────────────────────────
+# DrissionPage 要真实 DISPLAY 才能过 CF managed challenge。容器里没有物理显示，
+# 所以拉起一个虚拟帧缓冲 :99。已在跑就复用（重启容器后复用同一 X socket）。
+# 非 Docker 环境（宿主机直接跑）若已有 DISPLAY 则跳过。
+if [ -z "${ARTEX_NO_XVFB:-}" ] && command -v Xvfb >/dev/null 2>&1; then
+	if ! xdpyinfo -display "${DISPLAY:-:99}" >/dev/null 2>&1; then
+		echo "[artex] 启动 Xvfb ${DISPLAY:-:99}（破盾层虚拟显示）"
+		Xvfb "${DISPLAY:-:99}" -screen 0 1440x900x24 -nolisten tcp \
+			> /tmp/xvfb.log 2>&1 &
+		# 等 socket 就绪（最多 5 秒），失败不阻塞主程序启动
+		_i=0
+		while [ "$_i" -lt 25 ]; do
+			xdpyinfo -display "${DISPLAY:-:99}" >/dev/null 2>&1 && break
+			sleep 0.2
+			_i=$((_i + 1))
+		done
+	fi
+fi
+export DISPLAY="${DISPLAY:-:99}"
+# ── /YF 破盾层 ────────────────────────────────────────────────────────
+
 BIN=./artex
 [ -x "$BIN" ] || { echo "[artex] 找不到可执行文件 $BIN" >&2; exit 1; }
 

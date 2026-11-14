@@ -325,6 +325,8 @@ ON CONFLICT DO NOTHING`, r.kind, r.pattern, r.note); err != nil {
 // that MCP is enabled/configured.
 var builtinSkillVisibility = map[string][]string{
 	"api-recon": {"auto", "pentest", "worker"},
+	// cf-bypass（YF 魔改）：盾站必用技能，对核心 agent 默认可见。
+	"cf-bypass": {"auto", "pentest", "worker", "planner"},
 }
 
 // seedBuiltinSkillVisibility binds the shipped built-in skills to their default

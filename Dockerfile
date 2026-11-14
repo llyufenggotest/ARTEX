@@ -30,8 +30,20 @@ RUN npm install -g @playwright/mcp@latest @playwright/cli@latest playwright@late
     && playwright-cli --help \
     && playwright install --with-deps chromium \
     && rm -rf /var/lib/apt/lists/*
+# ── YF 破盾层（魔改新增）──────────────────────────────────────────────
+# 1. Xvfb + CJK 字体：DrissionPage 要真实 DISPLAY 才能过 CF managed challenge
+#    （headless 指纹必死；headless=false + Xvfb + CDP pierce 点击实测可通过）。
+# 2. Python 破盾栈：DrissionPage（CDP 控真 chromium）、ddddocr（图形验证码 OCR）、
+#    curl_cffi（TLS/JA3 指纹伪装，过无交互盾）。
+# 3. Xvfb 由 start.sh 常驻拉起（:99），DISPLAY 全局注入。
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      xvfb xauth x11-utils fonts-noto-cjk fonts-noto-color-emoji \
+    && pip install --no-cache-dir 'DrissionPage>=4.1' ddddocr curl_cffi Pillow \
+    && rm -rf /var/lib/apt/lists/*
+# ── /YF 破盾层 ────────────────────────────────────────────────────────
 WORKDIR /app
-ENV TZ=Asia/Shanghai
+ENV TZ=Asia/Shanghai \
+    DISPLAY=:99
 # 预编译好的对应架构二进制（dist/amd64/artex 或 dist/arm64/artex）
 COPY dist/${TARGETARCH}/artex /app/artex
 # 守护启动脚本：进程退出后按退出码决定是否重新拉起，页面一键更新靠它完成换装。
