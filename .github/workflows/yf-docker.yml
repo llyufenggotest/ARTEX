@@ -48,7 +48,8 @@ jobs:
           ARTEX_SKIP_NPM_CI: "1"
           ARTEX_COMPRESS: "0"
         run: |
-          cp -r web/out server/webui/dist
+          mkdir -p server/webui/dist
+          cp -r web/out/. server/webui/dist/
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
             go build -tags embedui -o dist/amd64/artex ./cmd/artex
 
